@@ -1,0 +1,46 @@
+registerMod("Chat System");
+
+// UI Setup
+const container = document.createElement("div");
+container.id = "chatContainer";
+container.innerHTML = `
+    <h2>Chat</h2>
+    <div id="chatMessages"></div>
+    <input id="chatInput" type="text" placeholder="Type a message..." />
+    <button id="chatSend">Send</button>
+`;
+document.getElementById("gameArea").appendChild(container);
+
+// Elements
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const chatSend = document.getElementById("chatSend");
+
+// Connect to real multiplayer server
+const socket = new WebSocket("ws://localhost:8080"); // Replace with real server IP/URL
+
+socket.onopen = () => console.log("Chat connected");
+
+socket.onmessage = e => {
+    const msg = e.data;
+    addMessage("Other", msg);
+};
+
+function addMessage(user, text) {
+    const div = document.createElement("div");
+    div.className = "chatMessage";
+    div.innerHTML = `<b>${user}:</b> ${text}`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+chatSend.onclick = () => {
+    if (!chatInput.value.trim()) return;
+    addMessage("You", chatInput.value);
+    socket.send(chatInput.value);
+    chatInput.value = "";
+};
+
+chatInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") chatSend.click();
+});
