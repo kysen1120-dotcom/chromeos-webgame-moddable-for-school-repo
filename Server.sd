@@ -1,0 +1,21 @@
+import { WebSocketServer } from "ws";
+const PORT = 8080;
+
+const wss = new WebSocketServer({ port: PORT });
+console.log(`WebSocket server running on ws://localhost:${PORT}`);
+
+wss.on("connection", (ws) => {
+  console.log("Client connected");
+
+  ws.on("message", (message) => {
+    // Broadcast to all clients
+    for (const client of wss.clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message.toString());
+      }
+    }
+  });
+
+  ws.on("close", () => console.log("Client disconnected"));
+  ws.send(JSON.stringify({ type: "welcome", msg: "Welcome to the server!" }));
+});
